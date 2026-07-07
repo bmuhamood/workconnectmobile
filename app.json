@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "WorkConnect",
+    "slug": "workconnect-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ug.workconnect.mobile"
+    },
+    "android": {
+      "package": "ug.workconnect.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2563eb"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#2563eb"
+        }
+      ]
+    ],
+    "scheme": "workconnect",
+    "extra": {
+      "supabaseUrl": "https://mccnfmzfmnhqjatuxnvg.supabase.co",
+      "supabasePublishableKey": "sb_publishable_lL_Sjpuzqm6CeqOZZocudA__VNIclch"
+    }
+  }
+}
