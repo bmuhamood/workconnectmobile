@@ -152,7 +152,7 @@ export default function DashboardScreen() {
         <View style={styles.quickGrid}>
           {isWorker && (
             <>
-              <QuickAction icon="person-circle-outline" title="Complete Profile" subtitle="Fill missing information" onPress={() => router.push('/profile')} />
+              <QuickAction icon="person-circle-outline" title="Complete Profile" subtitle="Fill missing information" onPress={() => router.push('/profile-edit')} />
               <QuickAction icon="briefcase-outline" title="Browse Jobs" subtitle="Find new opportunities" onPress={() => router.push('/(tabs)/jobs')} />
               <QuickAction icon="document-attach-outline" title="Update Documents" subtitle="Add new documents" onPress={() => router.push('/documents')} />
               <QuickAction icon="wallet-outline" title="View Earnings" subtitle="Check payment history" onPress={() => router.push('/payments')} />

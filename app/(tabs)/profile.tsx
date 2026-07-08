@@ -57,7 +57,7 @@ export default function ProfileScreen() {
         <View style={{ marginTop: spacing.lg, gap: spacing.sm }}>
           {user?.role === 'worker' && (
             <>
-              <Button title="Edit Profile" onPress={() => router.push('/profile')} />
+              <Button title="Edit Profile" onPress={() => router.push('/profile-edit')} />
               <Button title="My Applications" variant="outline" onPress={() => router.push('/applications')} />
               <Button title="My Saved Jobs" variant="outline" onPress={() => router.push('/saved-jobs')} />
               <Button title="My Documents" variant="outline" onPress={() => router.push('/documents')} />

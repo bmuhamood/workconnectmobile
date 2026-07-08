@@ -87,9 +87,17 @@ export default function ContractDetailScreen() {
           {contract.end_date && <Row label="End Date" value={formatDate(contract.end_date)} />}
           {contract.trial_end_date && <Row label="Trial Ends" value={formatDate(contract.trial_end_date)} />}
           <Row label="Work Location" value={contract.work_location ?? '—'} />
-          <Row label="Work Schedule" value={contract.work_schedule ?? '—'} />
-          {!!contract.work_hours_per_week && <Row label="Hours / Week" value={String(contract.work_hours_per_week)} />}
+          <Row label="Hours / Week" value={String(contract.work_hours_per_week ?? '—')} />
         </Card>
+
+        {contract.work_schedule && Object.keys(contract.work_schedule).length > 0 && (
+          <Card style={{ marginTop: spacing.sm }}>
+            <Text style={styles.fieldLabel}>Weekly Schedule</Text>
+            {Object.entries(contract.work_schedule).map(([day, hours]) => (
+              <Row key={day} label={day.charAt(0).toUpperCase() + day.slice(1)} value={String(hours)} />
+            ))}
+          </Card>
+        )}
 
         <Text style={styles.sectionTitle}>Description</Text>
         <Text style={styles.body}>{contract.job_description}</Text>
@@ -150,6 +158,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '800', color: colors.text, flex: 1, marginRight: spacing.sm },
   trialTag: { fontSize: 13, color: colors.warning, fontWeight: '600', marginTop: 4 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: spacing.lg, marginBottom: spacing.xs },
+  fieldLabel: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginBottom: spacing.xs },
   body: { fontSize: 14, color: colors.text, lineHeight: 21 },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
   rowLabel: { color: colors.textMuted, fontSize: 14 },

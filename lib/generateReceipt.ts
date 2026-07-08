@@ -56,11 +56,26 @@ function buildHtml(opts: ReceiptOptions): string {
 }
 
 /** Generates a real PDF and opens the native share/save sheet — works for
- * both payslips and invoices with the same underlying template. */
+ * both payslips and invoices with the same underlying template.
+ *
+ * Note: file-sharing via expo-sharing can behave differently inside plain
+ * Expo Go versus a real EAS build — Expo Go's FileProvider is registered
+ * under Expo Go's own package name, not your app's, which can cause
+ * sharing to work less reliably there than in an actual built app. If
+ * this fails specifically in Expo Go but not in a production/dev-client
+ * build, that's the explanation — not a bug in this function. */
 export async function generateAndShareReceipt(opts: ReceiptOptions): Promise<void> {
   const html = buildHtml(opts);
   const { uri } = await Print.printToFileAsync({ html });
-  if (await Sharing.isAvailableAsync()) {
+  const canShare = await Sharing.isAvailableAsync();
+  if (!canShare) {
+    throw new Error('Sharing is not available on this device.');
+  }
+  try {
     await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `${opts.title} ${opts.reference}` });
+  } catch (err: any) {
+    // Re-throw with the underlying native message intact so the caller's
+    // toast shows something actionable instead of a bare rejection.
+    throw new Error(err?.message || 'Failed to open the share sheet for this PDF.');
   }
 }
