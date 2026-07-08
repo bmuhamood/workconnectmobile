@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { colors, type } from '../constants/theme';
 
 export default function Index() {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -30,7 +30,11 @@ export default function Index() {
   }
 
   if (!onboarded) return <Redirect href="/onboarding" />;
-  return <Redirect href={user ? '/(tabs)' : '/(auth)/login'} />;
+  // Guests land in the tabs too — Jobs and Find Workers are public,
+  // matching the web app. Login is only required when actually applying,
+  // saving, messaging, or posting — enforced at the point of that action,
+  // not as a blanket gate here.
+  return <Redirect href="/(tabs)" />;
 }
 
 const styles = StyleSheet.create({

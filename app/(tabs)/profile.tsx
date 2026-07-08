@@ -16,6 +16,27 @@ export default function ProfileScreen() {
     ]);
   };
 
+  if (!user) {
+    return (
+      <Screen>
+        <ScrollView contentContainerStyle={{ padding: spacing.lg, flexGrow: 1, justifyContent: 'center' }}>
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              <Ionicons name="person-outline" size={36} color={colors.primary} />
+            </View>
+            <Text style={styles.name}>You're browsing as a guest</Text>
+            <Text style={styles.role}>Log in or create an account to apply, message, and manage contracts</Text>
+          </View>
+          <View style={{ marginTop: spacing.xl, gap: spacing.sm }}>
+            <Button title="Log In" onPress={() => router.push('/(auth)/login')} />
+            <Button title="Join as a Worker" variant="outline" onPress={() => router.push('/(auth)/register-worker')} />
+            <Button title="Join as an Employer" variant="ghost" onPress={() => router.push('/(auth)/register-employer')} />
+          </View>
+        </ScrollView>
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
@@ -36,6 +57,7 @@ export default function ProfileScreen() {
         <View style={{ marginTop: spacing.lg, gap: spacing.sm }}>
           {user?.role === 'worker' && (
             <>
+              <Button title="Edit Profile" onPress={() => router.push('/profile')} />
               <Button title="My Applications" variant="outline" onPress={() => router.push('/applications')} />
               <Button title="My Saved Jobs" variant="outline" onPress={() => router.push('/saved-jobs')} />
               <Button title="My Documents" variant="outline" onPress={() => router.push('/documents')} />

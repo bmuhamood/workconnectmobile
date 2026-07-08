@@ -1,6 +1,5 @@
 // app/(tabs)/_layout.tsx
-import { useEffect } from 'react';
-import { Tabs, router } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingView } from '../../components/ui';
@@ -9,13 +8,13 @@ import { colors } from '../../constants/theme';
 export default function TabsLayout() {
   const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && !user) router.replace('/(auth)/login');
-  }, [loading, user]);
+  if (loading) return <LoadingView />;
 
-  if (loading || !user) return <LoadingView />;
-
-  const isEmployer = user.role === 'employer' || user.role === 'admin' || user.role === 'super_admin';
+  // Guests (no user) can browse Jobs and Find Workers freely, matching
+  // the web app — only actions like applying, messaging, or posting
+  // require login, enforced at the point of that action instead of here.
+  const isEmployer = user?.role === 'employer' || user?.role === 'admin' || user?.role === 'super_admin';
+  const isWorker = user?.role === 'worker';
 
   return (
     <Tabs
@@ -37,17 +36,21 @@ export default function TabsLayout() {
         name="workers"
         options={{
           title: 'Workers',
-          href: isEmployer ? undefined : null, // hide this tab entirely for workers
+          href: isWorker ? null : undefined, // hidden only for the worker role — guests and employers can both browse
           tabBarIcon: ({ color, size }) => <Ionicons name="people" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="messages"
-        options={{ title: 'Messages', tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" color={color} size={size} /> }}
+        options={{
+          title: 'Messages',
+          href: user ? undefined : null, // messaging inherently requires an account
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" color={color} size={size} />,
+        }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} /> }}
+        options={{ title: user ? 'Profile' : 'Login', tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} /> }}
       />
     </Tabs>
   );

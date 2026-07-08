@@ -18,6 +18,15 @@ export interface WorkerProfile {
   profile_photo_url?: string;
 }
 
+export interface WorkerFilters {
+  search?: string;
+  profession?: string;
+  city?: string;
+  availability?: string;
+  min_rating?: number;
+  min_experience?: number;
+}
+
 function mapWorker(row: any): WorkerProfile {
   return { ...row, full_name: `${row.first_name} ${row.last_name}`.trim() };
 }
@@ -26,11 +35,16 @@ export function useWorkers() {
   const [workers, setWorkers] = useState<WorkerProfile[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const searchWorkers = useCallback(async (search?: string) => {
+  const searchWorkers = useCallback(async (filters: WorkerFilters = {}) => {
     setLoading(true);
     try {
       let query = supabase.from('worker_profiles').select('*').order('rating_average', { ascending: false }).limit(50);
-      if (search) query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,profession.ilike.%${search}%`);
+      if (filters.search) query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
+      if (filters.profession) query = query.ilike('profession', `%${filters.profession}%`);
+      if (filters.city) query = query.ilike('city', `%${filters.city}%`);
+      if (filters.availability) query = query.eq('availability', filters.availability as any);
+      if (filters.min_rating) query = query.gte('rating_average', filters.min_rating);
+      if (filters.min_experience) query = query.gte('experience_years', filters.min_experience);
       const { data, error } = await query;
       if (error) throw error;
       setWorkers((data ?? []).map(mapWorker));

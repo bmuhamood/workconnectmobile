@@ -20,6 +20,13 @@ export interface JobPosting {
 
 const SELECT = `*, employer_profiles ( id, company_name, first_name, last_name ), job_categories ( name )`;
 
+export interface JobFilters {
+  search?: string;
+  location?: string;
+  min_salary?: number;
+  max_salary?: number;
+}
+
 function mapJob(row: any): JobPosting {
   return {
     id: row.id,
@@ -48,11 +55,14 @@ export function useJobs() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchJobs = useCallback(async (search?: string) => {
+  const fetchJobs = useCallback(async (filters: JobFilters = {}) => {
     setLoading(true);
     try {
       let query = supabase.from('job_postings').select(SELECT).eq('status', 'active').order('created_at', { ascending: false }).limit(50);
-      if (search) query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
+      if (filters.search) query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,location.ilike.%${filters.search}%`);
+      if (filters.location) query = query.ilike('location', `%${filters.location}%`);
+      if (filters.min_salary) query = query.gte('salary_max', filters.min_salary);
+      if (filters.max_salary) query = query.lte('salary_min', filters.max_salary);
       const { data, error } = await query;
       if (error) throw error;
       setJobs((data ?? []).map(mapJob));

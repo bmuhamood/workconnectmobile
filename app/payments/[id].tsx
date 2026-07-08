@@ -2,14 +2,17 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import { supabase } from '../../lib/supabase';
-import { Card, LoadingView, Screen } from '../../components/ui';
+import { generateAndShareReceipt } from '../../lib/generateReceipt';
+import { Button, Card, LoadingView, Screen } from '../../components/ui';
 import { colors, formatUGX, formatDate, spacing } from '../../constants/theme';
 
 export default function PayslipScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [payment, setPayment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -29,6 +32,32 @@ export default function PayslipScreen() {
 
   const employer = payment.contracts?.employer_profiles;
   const worker = payment.worker_profiles;
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      await generateAndShareReceipt({
+        title: 'Payslip',
+        reference: payment.payment_reference,
+        date: formatDate(payment.scheduled_date),
+        partyLeft: { label: 'Employee', name: `${worker?.first_name ?? ''} ${worker?.last_name ?? ''}`, sub: worker?.profession },
+        partyRight: {
+          label: 'Employer',
+          name: employer?.company_name || `${employer?.first_name ?? ''} ${employer?.last_name ?? ''}`,
+          sub: payment.contracts?.job_title,
+        },
+        lineItems: [
+          { description: 'Gross Salary', amount: payment.salary_amount },
+          ...(payment.deductions > 0 ? [{ description: 'Deductions', amount: -payment.deductions }] : []),
+        ],
+        total: { label: 'Net Pay', amount: payment.net_amount },
+      });
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: 'Failed to generate PDF', text2: err.message });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <Screen>
@@ -56,6 +85,8 @@ export default function PayslipScreen() {
           <Row label="Method" value={payment.payment_method?.replace(/_/g, ' ') ?? '—'} />
           <Row label="Status" value={payment.status} />
         </Card>
+
+        <Button title="Download / Share PDF" onPress={handleDownload} loading={downloading} style={{ marginTop: spacing.lg }} />
 
         <Text style={styles.footer}>System-generated payslip · WorkConnect Uganda</Text>
       </ScrollView>

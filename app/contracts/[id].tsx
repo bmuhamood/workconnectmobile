@@ -1,6 +1,6 @@
 // app/contracts/[id].tsx
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { supabase } from '../../lib/supabase';
@@ -64,28 +64,73 @@ export default function ContractDetailScreen() {
           <Text style={styles.title}>{contract.job_title}</Text>
           <Badge text={contract.status} tone={contract.status === 'active' ? 'success' : contract.status === 'trial' ? 'warning' : 'default'} />
         </View>
+        {contract.is_trial && <Text style={styles.trialTag}>Trial period{contract.trial_duration_days ? ` · ${contract.trial_duration_days} days` : ''}</Text>}
 
-        <Card style={{ marginTop: spacing.md }}>
+        <Text style={styles.sectionTitle}>Parties</Text>
+        <Card>
           <Row label="Employer" value={contract.employer_profiles?.company_name || `${contract.employer_profiles?.first_name ?? ''} ${contract.employer_profiles?.last_name ?? ''}`} />
           <Row label="Worker" value={`${contract.worker_profiles?.first_name ?? ''} ${contract.worker_profiles?.last_name ?? ''}`} />
+          <Row label="Contract Type" value={contract.contract_type ?? '—'} />
+        </Card>
+
+        <Text style={styles.sectionTitle}>Compensation</Text>
+        <Card>
           <Row label="Salary" value={formatUGX(contract.worker_salary_amount)} />
           <Row label="Service Fee" value={formatUGX(contract.service_fee_amount)} />
-          <Row label="Total" value={formatUGX(contract.total_monthly_cost)} />
+          <Row label="Total Monthly Cost" value={formatUGX(contract.total_monthly_cost)} />
+          <Row label="Payment Frequency" value={contract.payment_frequency ?? '—'} />
+        </Card>
+
+        <Text style={styles.sectionTitle}>Schedule & Location</Text>
+        <Card>
           <Row label="Start Date" value={formatDate(contract.start_date)} />
+          {contract.end_date && <Row label="End Date" value={formatDate(contract.end_date)} />}
           {contract.trial_end_date && <Row label="Trial Ends" value={formatDate(contract.trial_end_date)} />}
+          <Row label="Work Location" value={contract.work_location ?? '—'} />
+          <Row label="Work Schedule" value={contract.work_schedule ?? '—'} />
+          {!!contract.work_hours_per_week && <Row label="Hours / Week" value={String(contract.work_hours_per_week)} />}
         </Card>
 
         <Text style={styles.sectionTitle}>Description</Text>
         <Text style={styles.body}>{contract.job_description}</Text>
 
+        {contract.trial_feedback && (
+          <>
+            <Text style={styles.sectionTitle}>Trial Feedback</Text>
+            <Text style={styles.body}>{contract.trial_feedback}</Text>
+          </>
+        )}
+
+        {contract.termination_reason && (
+          <>
+            <Text style={styles.sectionTitle}>Termination Reason</Text>
+            <Text style={styles.body}>{contract.termination_reason}</Text>
+          </>
+        )}
+
         <Text style={styles.sectionTitle}>Signatures</Text>
         <Card>
-          <Row label="Employer" value={contract.signed_by_employer ? '✓ Signed' : 'Unsigned'} />
-          <Row label="Worker" value={contract.signed_by_worker ? '✓ Signed' : 'Unsigned'} />
+          <Row
+            label="Employer"
+            value={contract.signed_by_employer ? `✓ Signed ${contract.employer_signature_date ? formatDate(contract.employer_signature_date) : ''}` : 'Unsigned'}
+          />
+          <Row
+            label="Worker"
+            value={contract.signed_by_worker ? `✓ Signed ${contract.worker_signature_date ? formatDate(contract.worker_signature_date) : ''}` : 'Unsigned'}
+          />
         </Card>
 
+        {contract.contract_document_url && (
+          <Button
+            title="View Full Contract Document"
+            variant="outline"
+            onPress={() => Linking.openURL(contract.contract_document_url)}
+            style={{ marginTop: spacing.md }}
+          />
+        )}
+
         {(isEmployer || isWorker) && !alreadySigned && (
-          <Button title="Sign Contract" onPress={handleSign} loading={signing} style={{ marginTop: spacing.xl }} />
+          <Button title="Sign Contract" onPress={handleSign} loading={signing} style={{ marginTop: spacing.lg }} />
         )}
       </ScrollView>
     </Screen>
@@ -103,9 +148,10 @@ function Row({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '800', color: colors.text, flex: 1, marginRight: spacing.sm },
+  trialTag: { fontSize: 13, color: colors.warning, fontWeight: '600', marginTop: 4 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: spacing.lg, marginBottom: spacing.xs },
   body: { fontSize: 14, color: colors.text, lineHeight: 21 },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
   rowLabel: { color: colors.textMuted, fontSize: 14 },
-  rowValue: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  rowValue: { color: colors.text, fontSize: 14, fontWeight: '600', textAlign: 'right', flexShrink: 1, marginLeft: spacing.sm },
 });
